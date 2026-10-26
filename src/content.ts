@@ -65,7 +65,7 @@ import { defaults, MAX_TEXT, position, safeHttps, validateExplanation, type Expl
   function render(explanation: Explanation, demo: boolean, provider?: string) {
     current = explanation; body.replaceChildren();
     if (demo) body.append(el('div','OFFLINE DEMO · Sample about photosynthesis, not your selected text.','demo'));
-    body.append(el('div',provider==='nano'?'GEMINI NANO · ON YOUR DEVICE':'A LITTLE CLARITY','eyebrow'),el('h2',explanation.title));
+    body.append(el('div',provider==='nano'?'GEMINI NANO · ON YOUR DEVICE':provider==='webllm'?'WEBLLM · ON YOUR DEVICE':'A LITTLE CLARITY','eyebrow'),el('h2',explanation.title));
     const quote = el('div',selected.length>180?selected.slice(0,180)+'…':selected,'quote'); quote.title='Your selected text'; body.append(quote);
     const simple=section('In simple terms'); simple.append(el('p',explanation.simple));body.append(simple);
     if (explanation.ideas.length) { const s=section('Key ideas');const list=el('ul');explanation.ideas.forEach(x=>list.append(el('li',x)));s.append(list);body.append(s); }

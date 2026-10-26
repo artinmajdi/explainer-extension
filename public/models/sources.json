@@ -1,0 +1,12 @@
+[
+  {
+    "file": "Qwen2-0.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+    "url": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_80/Qwen2-0.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+    "sha256": "25495a03bf7ac80a1925bc91e236c74c3ad52be89a9ed0d0eeb18e4a9d135234"
+  },
+  {
+    "file": "Qwen2-1.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+    "url": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0_2_80/Qwen2-1.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+    "sha256": "6cd9f132ad258d2017291bb62e955e337f8ae4af74650f4b1ea5a803a7cec538"
+  }
+]

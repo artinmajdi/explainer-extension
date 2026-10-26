@@ -1,9 +1,9 @@
 import type { Settings, Explanation } from './core';
 let creating:Promise<void>|undefined;
-async function ensureDocument(){
+export async function ensureDocument(){
   if(creating)return creating;
   creating=(async()=>{
-    if(!await chrome.offscreen.hasDocument())await chrome.offscreen.createDocument({url:'offscreen.html',reasons:[chrome.offscreen.Reason.IFRAME_SCRIPTING],justification:'Host and script a same-origin iframe running the window-only Gemini Nano Prompt API for local text explanations.'});
+    if(!await chrome.offscreen.hasDocument())await chrome.offscreen.createDocument({url:'offscreen.html',reasons:[chrome.offscreen.Reason.IFRAME_SCRIPTING],justification:'Host and script a same-origin iframe running the local Gemini Nano and WebLLM APIs for local text explanations.'});
   })();
   try{await creating;}finally{creating=undefined;}
 }

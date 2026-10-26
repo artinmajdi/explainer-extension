@@ -1,3 +1,5 @@
+import {webModels,webModel} from './webllm-models';
+import {webRequest} from './webllm-bridge';
 import { nanoAvailability, setupNano, nanoUnavailable } from './nano';
 import { defaults, type Settings } from './core';
 const field = (id:string) => document.getElementById(id) as HTMLInputElement;
@@ -8,13 +10,13 @@ async function load() {
   const data=await send({type:'status'});const s:Settings=data.settings;
   for(const name of ['enabled','consent','demo','context','images'] as const)field(name).checked=s[name];
   for(const name of ['provider','mode','level','language','theme','model'] as const)field(name).value=s[name];
-  field('remember').checked=data.persistent;field('disabled-sites').value=s.disabledSites.join('\n');
+  field('web-model').value=s.webModel;webModelUI();field('remember').checked=data.persistent;field('disabled-sites').value=s.disabledSites.join('\n');
   field('key-status').textContent=data.hasKey?'Key saved':'No key yet';field('api-key').placeholder=data.hasKey?'Key saved · enter a new key to replace it':'Paste your API key';await access(); providerUI(); void checkNano();
 }
 function read():Settings {
   return {...defaults,provider:field('provider').value as Settings['provider'],enabled:field('enabled').checked,consent:field('consent').checked,demo:field('demo').checked,context:field('context').checked,images:field('images').checked,
     mode:field('mode').value as Settings['mode'],level:field('level').value as Settings['level'],theme:field('theme').value as Settings['theme'],
-    language:field('language').value || defaults.language,model:field('model').value.trim(),
+    webModel:field('web-model').value,language:field('language').value || defaults.language,model:field('model').value.trim(),
     disabledSites:field('disabled-sites').value.split('\n').map(x=>x.trim().toLowerCase()).filter(Boolean)};
 }
 document.getElementById('settings-form')!.addEventListener('submit',async event=>{
@@ -29,7 +31,7 @@ field('revoke-all').addEventListener('click',async()=>{try{const granted=await c
 void load().catch(e=>status(e.message,true));
 
 let download:AbortController|null=null;
-function providerUI(){field('cloud-settings').hidden=field('provider').value!=='cloud';field('nano-settings').hidden=field('provider').value!=='nano';}
+function providerUI(){field('webllm-settings').hidden=field('provider').value!=='webllm';field('cloud-settings').hidden=field('provider').value!=='cloud';field('nano-settings').hidden=field('provider').value!=='nano';}
 async function checkNano(){
   if(download)return;
   try{const state=await nanoAvailability({language:field('language').value});
@@ -49,3 +51,21 @@ field('setup-nano').addEventListener('click',async()=>{
   finally{download=null;field('setup-nano').disabled=false;field('cancel-nano').hidden=true;progress.hidden=true;}
 });
 field('cancel-nano').addEventListener('click',()=>download?.abort());
+
+for(const model of webModels){const option=document.createElement('option');option.value=model.id;option.textContent=model.name;field('web-model').append(option);}
+function webModelUI(){const model=webModel(field('web-model').value);field('web-languages').textContent=model.languages;field('web-requirements').textContent=`Download estimate: ${model.download}. ${model.memory}`;(document.getElementById('web-model-source') as HTMLAnchorElement).href=model.source;}
+let webOperation:AbortController|null=null;
+field('web-model').addEventListener('change',()=>{webModelUI();field('web-status').textContent='Click Download & use model to prepare this model, then save your settings.';});
+async function webAction(action:string){
+  if(webOperation)return;const controller=new AbortController();webOperation=controller;
+  for(const id of ['setup-web','check-web','remove-web','web-model','provider','save'])field(id).disabled=true;
+  field('cancel-web').hidden=action==='status';field('web-status').textContent=action==='setup'?'Preparing model download. Keep this tab open…':'Checking model…';
+  try{await send({type:'webllmPrepare'});controller.signal.throwIfAborted();field('web-status').textContent=await webRequest(action,read(),controller.signal,text=>field('web-status').textContent=text);}
+  catch(e){field('web-status').textContent=(e as Error).message;}
+  finally{webOperation=null;for(const id of ['setup-web','check-web','remove-web','web-model','provider','save'])field(id).disabled=false;field('cancel-web').hidden=true;}
+}
+field('setup-web').addEventListener('click',()=>void webAction('setup'));
+field('check-web').addEventListener('click',()=>void webAction('status'));
+field('remove-web').addEventListener('click',()=>void webAction('remove'));
+field('cancel-web').addEventListener('click',()=>webOperation?.abort());
+window.addEventListener('pagehide',()=>webOperation?.abort());

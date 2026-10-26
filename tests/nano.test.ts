@@ -38,3 +38,9 @@ test('language options are consistent and unsupported names fail clearly',()=>{
   assert.deepEqual(nanoOptions({language:'English'}),{expectedOutputs:[{type:'text',languages:['en']}]});
   assert.deepEqual(nanoOptions(defaults),{});assert.throws(()=>nanoOptions({language:'made up language'}),/listed language/);
 });
+test('WebLLM settings persist only allowlisted model IDs',()=>{
+  const settings=cleanSettings({provider:'webllm',webModel:'Qwen2.5-0.5B-Instruct-q4f16_1-MLC'});
+  assert.equal(settings.provider,'webllm');assert.equal(settings.webModel,'Qwen2.5-0.5B-Instruct-q4f16_1-MLC');
+  assert.equal(cleanSettings({webModel:'https://untrusted.example/model'}).webModel,defaults.webModel);
+  assert.equal(cleanSettings({}).webModel,defaults.webModel);
+});

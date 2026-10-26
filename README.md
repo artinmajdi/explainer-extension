@@ -2,7 +2,7 @@
 
 Select a passage. Understand it in plain language without leaving the page.
 
-Explainer is a Manifest V3 Chrome extension with a floating reading companion, on-device Gemini Nano explanations, examples, definitions, locally rendered process diagrams, and optional Wikimedia pictures.
+Explainer is a Manifest V3 Chrome extension with a floating reading companion, on-device Gemini Nano or WebLLM explanations, examples, definitions, locally rendered process diagrams, and optional Wikimedia pictures.
 
 ## Install the built extension
 
@@ -15,7 +15,7 @@ Explainer is a Manifest V3 Chrome extension with a floating reading companion, o
 7. Enable your current site from the toolbar, or choose **Allow on all websites** in Settings. Reload existing pages after granting access.
 8. Select a word or passage. The explanation opens after a short pause.
 
-The ZIP in `artifacts/explainer-1.1.0.zip` contains the same built extension. Extract it before using Load unpacked. This is not a Chrome Web Store installation or signed CRX.
+The ZIP in `artifacts/explainer-1.2.0.zip` contains the same built extension. Extract it before using Load unpacked. This is not a Chrome Web Store installation or signed CRX.
 
 ### Offline demonstration (optional)
 
@@ -47,13 +47,13 @@ The default Nano engine needs no API key. For the optional cloud engine, users p
 
 Keys are stored in `chrome.storage.session` by default. This clears when the browser session ends. Explicitly choosing **Remember my key on this device** uses extension-local storage, which is **not encrypted secret storage**. Both storage areas are restricted to trusted extension contexts. Keys are never sent to content scripts, placed in the webpage DOM, returned by status messages, or logged by the extension. Remove the key from Settings at any time. A future hosted public service should keep shared provider credentials on an authenticated, rate-limited backend.
 
-Cloud AI requests require explicit provider selection and consent. In cloud automatic mode, each settled selection sends its text to Google’s Gemini API. With Nano, selections are processed locally. Optional surrounding context adds up to 1,800 characters from its enclosing paragraph, list item, or article to the selected engine. Use click mode or pause the extension on private pages. Password fields, textareas, and editable elements are excluded.
+Cloud AI requests require explicit provider selection and consent. In cloud automatic mode, each settled selection sends its text to Google’s Gemini API. With Nano or WebLLM, selections are processed locally. Optional surrounding context adds up to 1,800 characters from its enclosing paragraph, list item, or article to the selected engine. Use click mode or pause the extension on private pages. Password fields, textareas, and editable elements are excluded.
 
 Optional picture search sends a short AI-generated generic topic to Wikimedia Commons. Images load from Wikimedia's servers and display source/author/license metadata. Google and Wikimedia may handle their requests according to their own policies. Explainer does not store selections, explanation history, or browsing history and includes no analytics. Page UI is isolated by Shadow DOM for styling; it is **not** a security boundary against a hostile webpage.
 
 ## Permissions
 
-- `offscreen`: hosts and scripts a same-origin extension iframe for the window-only Prompt API, independently of the webpage.
+- `offscreen`: hosts and scripts a same-origin extension iframe for the window-only Prompt API and WebLLM runtime, independently of the webpage.
 - `storage`: settings and optional user-provided cloud credentials.
 - `contextMenus`: the selection explanation action.
 - `activeTab` and `scripting`: on-demand activation and content-script registration.
@@ -67,8 +67,8 @@ Removing persistent website permissions prevents future automatic injections. Re
 - Works with DOM-selectable text on permitted ordinary HTTP/HTTPS pages. Handles single words, multiple paragraphs, dynamic content, and permitted frames.
 - Does not support `chrome://` pages, the Chrome Web Store, the built-in PDF viewer, text inside images/canvas, closed shadow roots, or frames without permission. File URLs are not requested.
 - Keyboard/toolbar activation targets the top frame. Use automatic selection or the context menu for a permitted iframe.
-- Up to **24,000 characters** per selection. Oversize input is rejected before sending. Selections are split at whitespace into chunks of 3,000 characters for Nano or 6,000 for cloud AI, explained sequentially, and synthesized. Nano merges explanations in pairs and checks the measured context budget when Chrome exposes that API. An oversized intermediate result fails clearly instead of silently discarding content. Progress is visible. This character budget conservatively bounds input size; it is not an exact provider token count. Long passages need multiple inference passes (billable requests in cloud mode) and synthesis can lose nuance.
-- Each cloud Gemini request times out after 55 seconds. A local explanation has a three-minute processing limit; slow devices may need shorter selections. Browser/service-worker interruption produces a retry message. No requests survive a browser restart.
+- Nano/cloud: up to **24,000 characters** per selection. Oversize input is rejected before sending. Selections are split at whitespace into chunks of 3,000 characters for Nano or 6,000 for cloud AI, explained sequentially, and synthesized. Nano merges explanations in pairs and checks the measured context budget when Chrome exposes that API. An oversized intermediate result fails clearly instead of silently discarding content. Progress is visible. This character budget conservatively bounds input size; it is not an exact provider token count. Long passages need multiple inference passes (billable requests in cloud mode) and synthesis can lose nuance.
+- Each cloud Gemini request times out after 55 seconds. Nano has a three-minute processing limit and WebLLM a five-minute limit; slow devices may need shorter selections. Browser/service-worker interruption produces a retry message. No requests survive a browser restart.
 - Pictures depend on Commons availability and relevance; a relevant picture is not guaranteed. Diagrams are generated only for an appropriate process or causal chain. Pictures load separately from the explanation.
 - Selection inside an iframe is displayed within that frame and is limited by its viewport.
 - Some fullscreen/top-layer page interfaces, deeply transformed roots, unusual custom selections, and strict page image policies can limit display or images.
@@ -101,7 +101,7 @@ npm run package
 - `src/options.ts` / `src/popup.ts`: setup and toolbar controls.
 - `public/`: manifest, HTML, CSS, and bundled icons.
 
-All executable code is bundled locally. There is no remote script loading, eval, model-generated HTML execution, or arbitrary-URL fetch proxy. Explanations and Commons metadata are inserted as text. Process diagrams are built from a bounded list of validated labels and details.
+All executable code is bundled locally. The CSP allows bundled WebAssembly compilation for WebLLM but does not allow JavaScript unsafe-eval or remote scripts. There is no model-generated HTML execution or arbitrary-URL fetch proxy. Explanations and Commons metadata are inserted as text. Process diagrams are built from a bounded list of validated labels and details.
 
 ## Validation
 
@@ -120,3 +120,18 @@ Inspired by the learning interactions publicly shown in [Google Learn About](htt
 ## Privacy and publishing
 
 See [PRIVACY.md](PRIVACY.md) for data handling and [store/LISTING.md](store/LISTING.md) for the store description, permission explanations, and reviewer instructions.
+
+
+## WebLLM: choose another local model (v1.2)
+
+In Settings, select **WebLLM**, choose a model, click **Download & use model**, then **Save settings**. Language information updates immediately below the model picker, with a link to the author's model card. No API key or desktop app is required. Downloads are several hundred MB to around 1 GB; allow time for the first download and GPU compilation.
+
+Included models: Qwen2.5 0.5B and 1.5B Instruct (multilingual). Qwen's authors report 29+ languages; the UI lists their explicitly named examples and does not promise unverified Persian support. Small models can be inaccurate, especially outside their strongest languages.
+
+WebLLM needs WebGPU with shader-f16 support. Models use roughly 0.95–1.63 GB of GPU memory plus browser overhead. This release limits WebLLM selections plus context to 1,800 characters for the packaged 4K context model libraries. Nano and cloud retain their existing passage handling. If local processing fails there is no automatic cloud fallback.
+
+Use **Remove downloaded model** to delete the selected model's cached files. Model data downloads from Hugging Face; all executable JS/WASM ships in the extension. The WASM source URLs and SHA-256 hashes are recorded in `public/models/sources.json`. Rebuilds do not download executable libraries. See `public/models/NOTICE.txt` for third-party notices.
+
+Validation: `node tests/webllm-browser.mjs` checks model selection, language descriptions, persistence, actual WebLLM loading, and GPU availability. Set `WEBLLM_REAL_TEST=1` to also download Qwen2.5 1.5B and generate an explanation in an isolated browser profile.
+
+Release validation for 1.2.0: 16 unit tests and 21 Nano/cloud browser regression checks passed. Both Qwen sizes downloaded and generated real local explanations on the development machine. The 0.5B test also verified webpage selection through the background/offscreen path, cached model reload with networking disabled, and cache deletion while offline. This confirms the integration, not the factual accuracy of every generated explanation or support on every GPU.

@@ -8,6 +8,12 @@ Explainer is a browser extension maintained by Artin Majdi. Its single purpose i
 
 Gemini Nano processes selected text on the user's device through Chrome's built-in Prompt API. Explainer does not transmit these selections or local explanations to the developer or a cloud AI service. Chrome manages the model download and updates. The extension does not automatically switch to cloud processing when local AI is unavailable.
 
+## Optional WebLLM models
+
+When users select WebLLM, model weights, tokenizer data, and configuration are downloaded from Hugging Face and its content delivery hosts. These hosts receive normal network information such as IP address and requested model files. Selected text and explanations are processed locally and are not sent to those hosts. Executable JavaScript and WebAssembly libraries are bundled with the extension.
+
+Downloaded model files are stored in the extension's browser cache and can be removed for each model in Settings. Completed downloads may remain after cancellation. Chrome can evict cached data; setup may then require downloading missing files again. Local models use device memory while loaded. No separate desktop application is required.
+
 ## Optional Gemini cloud service
 
 If you explicitly select the Gemini cloud engine, provide your own API key, and consent to sharing, Explainer sends selected text and explanation preferences to Google's Gemini API. If you enable surrounding context, up to 1,800 nearby characters are included. Requests go directly to Google, not through a developer-operated server. Google processes these requests under its applicable Gemini API terms and privacy policies. Depending on your Google service tier and settings, Google's retention and use rules may differ; review them before submitting sensitive text.
@@ -36,6 +42,7 @@ Users can choose local or cloud processing, turn off pictures and surrounding co
 
 ## Third-party policies
 
+- Hugging Face privacy: https://huggingface.co/privacy
 - Google privacy: https://policies.google.com/privacy
 - Gemini API terms: https://ai.google.dev/gemini-api/terms
 - Wikimedia privacy: https://foundation.wikimedia.org/wiki/Policy:Privacy_policy

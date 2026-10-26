@@ -1,16 +1,17 @@
 {
   "name": "explainer-extension",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs --watch",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/core.test.ts tests/nano.test.ts",
+    "test": "node --import tsx --test tests/core.test.ts tests/nano.test.ts tests/webllm.test.mjs",
     "test:browser": "node tests/browser.mjs",
-    "check": "npm run typecheck && npm test && npm run build && npm run test:browser",
-    "package": "npm run build && node scripts/package.mjs"
+    "check": "npm run typecheck && npm test && npm run build && npm run test:browser && npm run test:webllm",
+    "package": "npm run build && node scripts/package.mjs",
+    "test:webllm": "node tests/webllm-browser.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.0",
@@ -18,5 +19,8 @@
     "playwright": "1.56.1",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
+  },
+  "dependencies": {
+    "@mlc-ai/web-llm": "0.2.82"
   }
 }

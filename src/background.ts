@@ -1,5 +1,6 @@
 import { defaults, cleanSettings, MAX_TEXT, safeHttps, type Settings, type Picture } from './core';
-import { runNano } from './nano-bridge';
+import {runWebLLM} from './webllm-bridge';
+import { runNano, ensureDocument } from './nano-bridge';
 import { explain, generate, demoExplanation } from './provider';
 
 const ready = Promise.all([
@@ -50,6 +51,7 @@ chrome.runtime.onMessage.addListener((message,sender,reply) => {
     if (message.type === 'openOptions' && (trusted(sender) || pageSender(sender))) { await chrome.runtime.openOptionsPage(); return {ok:true}; }
     if (!trusted(sender)) throw new Error('This action is only available in extension settings.');
     switch (message.type) {
+      case 'webllmPrepare': await ensureDocument(); return {ok:true};
       case 'status': return {ok:true,settings:await settings(),hasKey:!!(await key()),persistent:!!(await chrome.storage.local.get('apiKey')).apiKey};
       case 'save': {
         const next = cleanSettings(message.settings || {});
@@ -111,7 +113,7 @@ async function pictures(query: string, signal: AbortSignal): Promise<Picture[]> 
   }).slice(0,2);
 }
 chrome.runtime.onConnect.addListener(port => {
-  if (port.name === 'nano-inference') return;
+  if (['nano-inference','webllm-inference'].includes(port.name)) return;
   if (port.name !== 'explain' || !port.sender || !pageSender(port.sender)) { port.disconnect(); return; }
   const controller = new AbortController(); let started = false;
   const post = (value: unknown) => { if (!controller.signal.aborted) { try { port.postMessage(value); } catch { controller.abort(); } } };
@@ -126,10 +128,10 @@ chrome.runtime.onConnect.addListener(port => {
       if (!text) throw new Error('Select some text first.');
       if (text.length > MAX_TEXT) throw new Error(`Select up to ${MAX_TEXT.toLocaleString()} characters at a time. Nothing was sent.`);
       if (!s.demo && s.provider === 'cloud' && !s.consent) { post({type:'setup',message:'Choose how your selected text is shared in Settings before using AI explanations.'}); return; }
-      const k = s.demo || s.provider === 'nano' ? '' : await key();
+      const k = s.demo || s.provider !== 'cloud' ? '' : await key();
       if (!s.demo && s.provider === 'cloud' && !k) { post({type:'setup',message:'Add your Gemini API key in Settings, or try the offline demo.'}); return; }
       const refinement = ({simpler:'Use easier words and shorter sentences.',detail:'Give a more detailed explanation.',example:'Focus on a concrete illustrative example.'} as Record<string,string>)[message.refinement] || '';
-      const engine = s.provider === 'nano' ? runNano : (settings:Settings,text:string,context:string,refinement:string,signal:AbortSignal,progress:(text:string)=>void) => explain(k,settings,text,context,refinement,signal,progress);
+      const engine = s.provider === 'nano' ? runNano : s.provider === 'webllm' ? runWebLLM : (settings:Settings,text:string,context:string,refinement:string,signal:AbortSignal,progress:(text:string)=>void) => explain(k,settings,text,context,refinement,signal,progress);
       const result = s.demo ? demoExplanation() : await engine(s,text,s.context && typeof message.context === 'string' ? message.context.slice(0,1800) : '',refinement,controller.signal,t=>post({type:'progress',message:t}));
       post({type:'result',explanation:result,demo:s.demo,provider:s.provider});
       if (s.images && !s.demo && result.imageQuery) {

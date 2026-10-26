@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Explainer \u2014 understand what you read",
   "short_name": "Explainer",
-  "version": "1.1.0",
-  "description": "Select text for on-device Gemini Nano explanations, examples, diagrams, and optional pictures. No API key needed.",
+  "version": "1.2.0",
+  "description": "Select text for simpler explanations with Gemini Nano or downloadable WebLLM models, examples, diagrams, and optional pictures.",
   "minimum_chrome_version": "138",
   "permissions": [
     "storage",
@@ -44,6 +44,6 @@
     "128": "icons/icon128.png"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'none'; connect-src https://generativelanguage.googleapis.com https://commons.wikimedia.org; img-src 'self' https://upload.wikimedia.org data:; style-src 'self'; base-uri 'none'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; connect-src 'self' https://generativelanguage.googleapis.com https://commons.wikimedia.org https://huggingface.co https://*.huggingface.co https://*.hf.co; img-src 'self' https://upload.wikimedia.org data:; style-src 'self'; base-uri 'none'"
   }
 }

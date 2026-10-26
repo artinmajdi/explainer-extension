@@ -1,13 +1,14 @@
+import {defaultWebModel, webModels} from './webllm-models';
 export type Settings = {
-  provider: 'nano' | 'cloud';
+  provider: 'nano' | 'cloud' | 'webllm';
   enabled: boolean; consent: boolean; mode: 'auto' | 'click'; demo: boolean;
   images: boolean; context: boolean; level: 'everyday' | 'beginner' | 'advanced';
-  language: string; theme: 'system' | 'light' | 'dark'; model: string; disabledSites: string[];
+  language: string; theme: 'system' | 'light' | 'dark'; model: string; webModel: string; disabledSites: string[];
 };
 export const defaults: Settings = {
   provider: 'nano', enabled: true, consent: false, mode: 'auto', demo: false, images: false, context: false,
   level: 'everyday', language: 'Same as selected text', theme: 'system',
-  model: 'gemini-2.5-flash-lite', disabledSites: []
+  model: 'gemini-2.5-flash-lite', webModel:defaultWebModel, disabledSites: []
 };
 export const MAX_TEXT = 24000;
 export const CHUNK_SIZE = 6000;
@@ -55,7 +56,8 @@ export function validateExplanation(value: unknown): Explanation {
 }
 export function cleanSettings(raw: Partial<Settings>): Settings {
   return {
-    provider: raw.provider === 'cloud' ? 'cloud' : 'nano',
+    provider: raw.provider === 'cloud' || raw.provider === 'webllm' ? raw.provider : 'nano',
+    webModel: webModels.some(m=>m.id===raw.webModel) ? raw.webModel! : defaultWebModel,
     enabled: typeof raw.enabled === 'boolean' ? raw.enabled : true,
     consent: raw.consent === true, demo: raw.demo === true, images: raw.images === true, context: raw.context === true,
     mode: raw.mode === 'click' ? 'click' : 'auto',

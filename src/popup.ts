@@ -4,10 +4,11 @@ async function send(message:unknown){const r=await chrome.runtime.sendMessage(me
 async function load(){
   const r=await send({type:'status'});const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
   const host=tab?.url && /^https?:/.test(tab.url)?new URL(tab.url).hostname:'';
-  node('state').textContent=!r.settings.enabled?'Paused':r.settings.demo?'Demo':r.settings.provider==='nano'?'Nano':r.hasKey?'Cloud':'Set up';
+  node('state').textContent=!r.settings.enabled?'Paused':r.settings.demo?'Demo':r.settings.provider==='nano'?'Nano':r.settings.provider==='webllm'?'WebLLM':r.hasKey?'Cloud':'Set up';
   node('toggle').textContent=r.settings.enabled?'Pause everywhere':'Resume everywhere';
   node('toggle-site').textContent=r.settings.disabledSites.includes(host)?'Enable on this site':'Disable on this site';
   if(r.settings.provider==='nano'&&!r.settings.demo)show('On-device explanations. Set up Gemini Nano in Settings first.');
+  if(r.settings.provider==='webllm'&&!r.settings.demo)show('On-device WebLLM explanations. Download your chosen model in Settings first.');
   if(r.settings.provider==='cloud'&&!r.hasKey&&!r.settings.demo)show('Add your Gemini key in Settings to begin.');
 }
 node('settings').addEventListener('click',()=>void chrome.runtime.openOptionsPage());
