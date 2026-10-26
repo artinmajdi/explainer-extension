@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env*
+!.env.example
+artifacts/*.zip
+artifacts/test-*
+.DS_Store
+artifacts/*.png
