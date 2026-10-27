@@ -5,13 +5,12 @@ import { defaults, type Settings } from './core';
 const field = (id:string) => document.getElementById(id) as HTMLInputElement;
 const status = (text:string,error=false) => {const node=field('status');node.textContent=text;node.className=error?'error':'';};
 async function send(message: unknown) {const r=await chrome.runtime.sendMessage(message);if(!r.ok)throw new Error(r.error);return r;}
-async function access() {const granted=await chrome.permissions.getAll();const sites=(granted.origins || []).filter(x=>!x.includes('googleapis.com')&&!x.includes('commons.wikimedia.org'));field('access-status').textContent=sites.length?`Enabled for: ${sites.join(', ')}`:'No persistent website access yet. The toolbar can enable one site.';}
 async function load() {
   const data=await send({type:'status'});const s:Settings=data.settings;
   for(const name of ['enabled','consent','demo','context','images'] as const)field(name).checked=s[name];
   for(const name of ['provider','mode','level','language','theme','model'] as const)field(name).value=s[name];
   field('web-model').value=s.webModel;webModelUI();field('remember').checked=data.persistent;field('disabled-sites').value=s.disabledSites.join('\n');
-  field('key-status').textContent=data.hasKey?'Key saved':'No key yet';field('api-key').placeholder=data.hasKey?'Key saved · enter a new key to replace it':'Paste your API key';await access(); providerUI(); void checkNano();
+  field('key-status').textContent=data.hasKey?'Key saved':'No key yet';field('api-key').placeholder=data.hasKey?'Key saved · enter a new key to replace it':'Paste your API key';providerUI(); void checkNano();
 }
 function read():Settings {
   return {...defaults,provider:field('provider').value as Settings['provider'],enabled:field('enabled').checked,consent:field('consent').checked,demo:field('demo').checked,context:field('context').checked,images:field('images').checked,
@@ -26,8 +25,6 @@ document.getElementById('settings-form')!.addEventListener('submit',async event=
 field('show-key').addEventListener('click',()=>{const input=field('api-key');input.type=input.type==='password'?'text':'password';field('show-key').textContent=input.type==='password'?'Show':'Hide';});
 field('remove-key').addEventListener('click',async()=>{try{await send({type:'removeKey'});await load();status('API key removed.');}catch(e){status((e as Error).message,true);}});
 field('test-key').addEventListener('click',async()=>{const button=field('test-key');button.disabled=true;status('Testing your saved key and model with a short sample…');try{await send({type:'test'});status('Connected. Gemini returned a valid explanation.');}catch(e){status((e as Error).message,true);}finally{button.disabled=false;}});
-field('grant-all').addEventListener('click',async()=>{try{const ok=await chrome.permissions.request({origins:['http://*/*','https://*/*']});status(ok?'Website access granted. Save settings, then reload your tabs.':'Access was not granted. You can enable individual sites from the toolbar.');await access();}catch(e){status((e as Error).message,true);}});
-field('revoke-all').addEventListener('click',async()=>{try{const granted=await chrome.permissions.getAll();const origins=(granted.origins||[]).filter(x=>!x.includes('generativelanguage.googleapis.com')&&!x.includes('commons.wikimedia.org'));if(origins.length)await chrome.permissions.remove({origins});status('Persistent website access removed. Reload open webpages to remove injected controls.');await access();}catch(e){status((e as Error).message,true);}});
 void load().catch(e=>status(e.message,true));
 
 let download:AbortController|null=null;

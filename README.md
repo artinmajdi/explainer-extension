@@ -12,19 +12,19 @@ Explainer is a Manifest V3 Chrome extension with a floating reading companion, o
 4. Pin Explainer using Chrome's extensions menu.
 5. Open **Settings & AI setup** from the Explainer toolbar menu.
 6. Leave **Gemini Nano · on this device** selected. Click **Set up Gemini Nano**, keep Settings open until Chrome finishes downloading the model, and save. No API key or cloud consent is required.
-7. Enable your current site from the toolbar, or choose **Allow on all websites** in Settings. Reload existing pages after granting access.
+7. Reload already-open webpages once after installation/update, then select text on an ordinary website. Automatic website access is included at installation; no right-click or per-site activation is required. Chrome may require you to approve expanded access when updating from 1.2.0.
 8. Select a word or passage. The explanation opens after a short pause.
 
 The ZIP in `artifacts/explainer-1.2.0.zip` contains the same built extension. Extract it before using Load unpacked. This is not a Chrome Web Store installation or signed CRX.
 
 ### Offline demonstration (optional)
 
-Enable **Try offline demo mode**, save, enable website access, and select text on an ordinary page. The demo always shows a clearly labeled sample about photosynthesis, **not an explanation of the selected passage**. It makes no AI or image-search requests.
+Enable **Try offline demo mode**, save, and select text on an ordinary page. The demo always shows a clearly labeled sample about photosynthesis, **not an explanation of the selected passage**. It makes no AI or image-search requests.
 
 ### Controls
 
 - **Automatically after selection** or **When I click “Explain”** in Settings.
-- **Alt+Shift+E** (Option+Shift+E on macOS), or the selection context menu, explains text on demand. Chrome shortcuts can be changed at `chrome://extensions/shortcuts`.
+- **Alt+Shift+E** (Option+Shift+E on macOS), or the selection toolbar, explains text on demand. Chrome shortcuts can be changed at `chrome://extensions/shortcuts`.
 - **Pin** keeps the current explanation while you read or select other text; **Escape** always closes it.
 - **Simpler**, **More detail**, and **Show example** make a fresh request about the original selection.
 - **Copy** copies the explanation as plain text. Clipboard access can be blocked by the page/browser; a failure is shown without disrupting the explanation.
@@ -55,10 +55,7 @@ Optional picture search sends a short AI-generated generic topic to Wikimedia Co
 
 - `offscreen`: hosts and scripts a same-origin extension iframe for the window-only Prompt API and WebLLM runtime, independently of the webpage.
 - `storage`: settings and optional user-provided cloud credentials.
-- `contextMenus`: the selection explanation action.
-- `activeTab` and `scripting`: on-demand activation and content-script registration.
-- Required host access to the Gemini API and Wikimedia Commons: narrowly scoped network destinations.
-- Optional HTTP/HTTPS host access: the user grants specific sites or all ordinary websites. Scripts then run in permitted frames to detect selections and display the overlay.
+- Required HTTP/HTTPS host access: detects selections automatically on ordinary websites and displays explanations. Also permits the optional Gemini cloud and Wikimedia requests. No `activeTab`, `contextMenus`, or `scripting` permission is used. Declarative content scripts start automatically when pages load.
 
 Removing persistent website permissions prevents future automatic injections. Reload existing tabs to remove scripts already injected. Pausing the extension immediately closes its current popups and prevents new explanations.
 
@@ -66,7 +63,7 @@ Removing persistent website permissions prevents future automatic injections. Re
 
 - Works with DOM-selectable text on permitted ordinary HTTP/HTTPS pages. Handles single words, multiple paragraphs, dynamic content, and permitted frames.
 - Does not support `chrome://` pages, the Chrome Web Store, the built-in PDF viewer, text inside images/canvas, closed shadow roots, or frames without permission. File URLs are not requested.
-- Keyboard/toolbar activation targets the top frame. Use automatic selection or the context menu for a permitted iframe.
+- Keyboard/toolbar activation targets the top frame. Use automatic selection or the toolbar for a permitted iframe.
 - Nano/cloud: up to **24,000 characters** per selection. Oversize input is rejected before sending. Selections are split at whitespace into chunks of 3,000 characters for Nano or 6,000 for cloud AI, explained sequentially, and synthesized. Nano merges explanations in pairs and checks the measured context budget when Chrome exposes that API. An oversized intermediate result fails clearly instead of silently discarding content. Progress is visible. This character budget conservatively bounds input size; it is not an exact provider token count. Long passages need multiple inference passes (billable requests in cloud mode) and synthesis can lose nuance.
 - Each cloud Gemini request times out after 55 seconds. Nano has a three-minute processing limit and WebLLM a five-minute limit; slow devices may need shorter selections. Browser/service-worker interruption produces a retry message. No requests survive a browser restart.
 - Pictures depend on Commons availability and relevance; a relevant picture is not guaranteed. Diagrams are generated only for an appropriate process or causal chain. Pictures load separately from the explanation.
@@ -107,11 +104,11 @@ All executable code is bundled locally. The CSP allows bundled WebAssembly compi
 
 Unit tests exercise chunk preservation, input limits, response validation, model restrictions, URL restrictions, positioning, provider errors, and multi-part synthesis.
 
-Browser tests load the **built extension** into an isolated Chromium profile. A temporary copy of the manifest adds only the loopback fixture host to required permissions; production permissions and all compiled scripts stay unchanged. A test-only Prompt API double is injected into the temporary local-AI iframe; this file is never included in the production build. Deterministic responses replace fetch at the service-worker network boundary. Tests cover default-provider migration, Nano setup, local routing without a key, no network/cloud fallback, unavailable/download-required states, setup, demo labeling, CSS isolation, pinning, Gemini request construction, image failure, refinement, inert malicious markup, stale requests, rate limits, input size, editable exclusions, narrow viewports, click mode, frames, and pause.
+Browser tests load the **built extension** into an isolated Chromium profile. Tests retain production website permissions and verify automatic selection without toolbar or toolbar activation. A test-only Prompt API double is injected into the temporary local-AI iframe; this file is never included in the production build. Deterministic responses replace fetch at the service-worker network boundary. Tests cover default-provider migration, Nano setup, local routing without a key, no network/cloud fallback, unavailable/download-required states, setup, demo labeling, CSS isolation, pinning, Gemini request construction, image failure, refinement, inert malicious markup, stale requests, rate limits, input size, editable exclusions, narrow viewports, click mode, frames, and pause.
 
 Screenshots are saved to `artifacts/settings.png` and `artifacts/extension-demo.png`. A successful run writes `artifacts/test-report.json`.
 
-Native Gemini Nano generation requires a supported Chrome installation with a downloaded model and is not confirmed by mocked tests. Use **Set up Gemini Nano**, then explain a short passage to check your installation. Cloud generation has not been verified without a user-provided key; use **Test saved connection** if you opt into that engine. Headless tests do not exercise Chrome's native permission prompts, context menu UI, or physical keyboard shortcut dispatch; verify those manually after installation.
+Native Gemini Nano generation requires a supported Chrome installation with a downloaded model and is not confirmed by mocked tests. Use **Set up Gemini Nano**, then explain a short passage to check your installation. Cloud generation has not been verified without a user-provided key; use **Test saved connection** if you opt into that engine. Headless tests do not exercise Chrome's native permission prompts, toolbar UI, or physical keyboard shortcut dispatch; verify those manually after installation.
 
 ## Reference
 

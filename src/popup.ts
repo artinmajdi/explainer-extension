@@ -15,10 +15,4 @@ node('settings').addEventListener('click',()=>void chrome.runtime.openOptionsPag
 node('activate').addEventListener('click',async()=>{try{await send({type:'activate'});window.close();}catch(e){show((e as Error).message,true);}});
 node('toggle').addEventListener('click',async()=>{try{await send({type:'toggle'});await load();}catch(e){show((e as Error).message,true);}});
 node('toggle-site').addEventListener('click',async()=>{try{await send({type:'toggleSite'});await load();}catch(e){show((e as Error).message,true);}});
-node('grant-site').addEventListener('click',async()=>{
-  try{const [tab]=await chrome.tabs.query({active:true,currentWindow:true});if(!tab?.url || !/^https?:/.test(tab.url))throw new Error('Open a normal webpage first.');
-    const url=new URL(tab.url);const ok=await chrome.permissions.request({origins:[`${url.protocol}//${url.hostname}/*`]});
-    show(ok?'Site enabled. Reload the page to start automatic selection explanations.':'Site access was not granted.');
-  }catch(e){show((e as Error).message,true);}
-});
 void load().catch(e=>show(e.message,true));

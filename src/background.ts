@@ -14,30 +14,17 @@ function pageSender(sender: chrome.runtime.MessageSender) { return sender.id ===
 async function broadcast() {
   for (const tab of await chrome.tabs.query({})) if (tab.id) chrome.tabs.sendMessage(tab.id,{type:'settingsChanged'}).catch(()=>{});
 }
-async function syncScripts() {
-  const granted = await chrome.permissions.getAll();
-  const matches = (granted.origins || []).filter(origin => /^https?:\/\//.test(origin) && !origin.includes('generativelanguage.googleapis.com') && !origin.includes('commons.wikimedia.org'));
-  await chrome.scripting.unregisterContentScripts({ids:['explainer']}).catch(()=>{});
-  if (matches.length) await chrome.scripting.registerContentScripts([{id:'explainer',js:['content.js'],matches,runAt:'document_idle',allFrames:true,persistAcrossSessions:true}]);
-}
-chrome.permissions.onAdded.addListener(()=>{ void syncScripts(); });
-chrome.permissions.onRemoved.addListener(()=>{ void syncScripts(); void broadcast(); });
+chrome.permissions.onRemoved.addListener(()=>{ void broadcast(); });
 chrome.runtime.onInstalled.addListener(async () => {
   await ready;
   if (!(await chrome.storage.local.get('settings')).settings) await chrome.storage.local.set({settings:defaults});
-  await chrome.contextMenus.removeAll();
-  chrome.contextMenus.create({id:'explain',title:'Explain selected text',contexts:['selection'],documentUrlPatterns:['http://*/*','https://*/*']});
-  await syncScripts();
 });
-chrome.runtime.onStartup.addListener(()=>{ void syncScripts(); });
-async function activate(tabId: number, selectedText?: string, frameId = 0) {
+async function activate(tabId: number) {
   try {
-    await chrome.scripting.executeScript({target:{tabId,frameIds:[frameId]},files:['content.js']});
-    await chrome.tabs.sendMessage(tabId,{type:'explainSelection',text:selectedText},{frameId});
+    await chrome.tabs.sendMessage(tabId,{type:'explainSelection'});
     return {ok:true};
-  } catch { return {ok:false,error:'This page cannot be accessed. Open a normal website, grant site access, and try again.'}; }
+  } catch { return {ok:false,error:'Reload this webpage once after installing or updating Explainer, then select text again. Chrome internal pages and other protected pages are not supported.'}; }
 }
-chrome.contextMenus.onClicked.addListener((info,tab)=>{ if (info.menuItemId === 'explain' && tab?.id) void activate(tab.id,info.selectionText,info.frameId); });
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== 'explain-selection') return;
   const [tab] = await chrome.tabs.query({active:true,currentWindow:true});

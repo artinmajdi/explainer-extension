@@ -6,10 +6,9 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 const temp=await mkdtemp(path.join(tmpdir(),'explainer-test-'));
 const extension=path.join(temp,'extension');await cp('dist',extension,{recursive:true});
-// Grant ONLY the fixture origin at install time to make headless tests deterministic.
-// Production keeps all page access optional; all compiled code is unchanged.
+// Exercise automatic selection with the production website permissions, without a user gesture.
 const manifest=JSON.parse(await readFile(path.join(extension,'manifest.json'),'utf8'));
-manifest.host_permissions.push('http://127.0.0.1/*');
+assert.ok(!manifest.permissions.includes('activeTab')); assert.ok(manifest.host_permissions.includes('http://*/*')); assert.ok(manifest.host_permissions.includes('https://*/*'));
 await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
 await cp('tests/nano-mock.js',path.join(extension,'nano-mock.js'));
 const frameHtml=await readFile(path.join(extension,'nano-frame.html'),'utf8');
@@ -26,7 +25,8 @@ try{
   browser=await chromium.launchPersistentContext(path.join(temp,'profile'),{channel:'chromium',headless:true,viewport:{width:1280,height:960},args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
   let [worker]=browser.serviceWorkers();if(!worker)worker=await browser.waitForEvent('serviceworker');
   const id=new URL(worker.url()).hostname;
-  await waitFor(()=>worker.evaluate(async()=> !!chrome.scripting && (await chrome.scripting.getRegisteredContentScripts()).length>0),'script registration');
+  assert.deepEqual(manifest.permissions,['storage','offscreen']);
+  assert.deepEqual(manifest.content_scripts[0].matches,['http://*/*','https://*/*']);
   const options=await browser.newPage();await options.goto(`chrome-extension://${id}/options.html`);
   options.on('pageerror',e=>errors.push(e.message));
   await options.locator('#key-status').filter({hasText:'No key yet'}).waitFor({state:'attached'});
