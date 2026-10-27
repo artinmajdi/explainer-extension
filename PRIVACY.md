@@ -55,3 +55,5 @@ Questions and requests can be submitted at https://github.com/artinmajdi/explain
 The extension requests HTTP/HTTPS website access at installation so selection detection works automatically. It does not require activeTab or a preliminary right-click. Users can pause the extension, disable individual sites, or restrict site access through Chrome. Website access does not enable cloud processing or pictures; those remain separate opt-in settings.
 
 Version 1.2.2 uses declarative content scripts instead of dynamic injection and removes contextMenus and scripting permissions as well. Reload already-open pages once after installation/update. Storage preserves preferences and optional cloud credentials; offscreen hosts the on-device AI runtime.
+
+Version 1.2.3 adds activeTab for temporary current-tab access following explicit toolbar or shortcut invocation. Automatic selection still uses the existing HTTP/HTTPS website access; this addition does not reduce that access or enable cloud processing.

@@ -53,9 +53,11 @@ Optional picture search sends a short AI-generated generic topic to Wikimedia Co
 
 ## Permissions
 
+- `activeTab`: temporary current-tab access after a toolbar or keyboard-shortcut invocation. Added in 1.2.3 at user request; it is redundant while broad website access is granted and does not remove the broad-host review warning.
+
 - `offscreen`: hosts and scripts a same-origin extension iframe for the window-only Prompt API and WebLLM runtime, independently of the webpage.
 - `storage`: settings and optional user-provided cloud credentials.
-- Required HTTP/HTTPS host access: detects selections automatically on ordinary websites and displays explanations. Also permits the optional Gemini cloud and Wikimedia requests. No `activeTab`, `contextMenus`, or `scripting` permission is used. Declarative content scripts start automatically when pages load.
+- Required HTTP/HTTPS host access: detects selections automatically on ordinary websites and displays explanations. Also permits the optional Gemini cloud and Wikimedia requests. No `contextMenus` or `scripting` permission is used. Declarative content scripts start automatically when pages load.
 
 Removing persistent website permissions prevents future automatic injections. Reload existing tabs to remove scripts already injected. Pausing the extension immediately closes its current popups and prevents new explanations.
 

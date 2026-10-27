@@ -2,12 +2,13 @@
   "manifest_version": 3,
   "name": "Explainer \u2014 understand what you read",
   "short_name": "Explainer",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Select text for simpler explanations with Gemini Nano or downloadable WebLLM models, examples, diagrams, and optional pictures.",
   "minimum_chrome_version": "138",
   "permissions": [
     "storage",
-    "offscreen"
+    "offscreen",
+    "activeTab"
   ],
   "host_permissions": [
     "http://*/*",

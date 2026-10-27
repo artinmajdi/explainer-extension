@@ -10,7 +10,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 let browser;
 try{
  const extension=path.join(temp,'extension');await cp('dist',extension,{recursive:true});
- const manifest=JSON.parse(await readFile(path.join(extension,'manifest.json'),'utf8'));assert.ok(!manifest.permissions.includes('activeTab')); assert.ok(manifest.host_permissions.includes('http://*/*')); assert.ok(manifest.host_permissions.includes('https://*/*'));await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
+ const manifest=JSON.parse(await readFile(path.join(extension,'manifest.json'),'utf8'));assert.ok(manifest.permissions.includes('activeTab')); assert.ok(manifest.host_permissions.includes('http://*/*')); assert.ok(manifest.host_permissions.includes('https://*/*'));await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
  browser=await chromium.launchPersistentContext(path.join(temp,'profile'),{channel:'chromium',headless:true,viewport:{width:1280,height:900},args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
  let [worker]=browser.serviceWorkers();if(!worker)worker=await browser.waitForEvent('serviceworker');
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));

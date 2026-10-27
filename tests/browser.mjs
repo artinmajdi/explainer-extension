@@ -8,7 +8,7 @@ const temp=await mkdtemp(path.join(tmpdir(),'explainer-test-'));
 const extension=path.join(temp,'extension');await cp('dist',extension,{recursive:true});
 // Exercise automatic selection with the production website permissions, without a user gesture.
 const manifest=JSON.parse(await readFile(path.join(extension,'manifest.json'),'utf8'));
-assert.ok(!manifest.permissions.includes('activeTab')); assert.ok(manifest.host_permissions.includes('http://*/*')); assert.ok(manifest.host_permissions.includes('https://*/*'));
+assert.ok(manifest.permissions.includes('activeTab')); assert.ok(manifest.host_permissions.includes('http://*/*')); assert.ok(manifest.host_permissions.includes('https://*/*'));
 await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
 await cp('tests/nano-mock.js',path.join(extension,'nano-mock.js'));
 const frameHtml=await readFile(path.join(extension,'nano-frame.html'),'utf8');
@@ -25,7 +25,7 @@ try{
   browser=await chromium.launchPersistentContext(path.join(temp,'profile'),{channel:'chromium',headless:true,viewport:{width:1280,height:960},args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]});
   let [worker]=browser.serviceWorkers();if(!worker)worker=await browser.waitForEvent('serviceworker');
   const id=new URL(worker.url()).hostname;
-  assert.deepEqual(manifest.permissions,['storage','offscreen']);
+  assert.deepEqual(manifest.permissions,['storage','offscreen','activeTab']);
   assert.deepEqual(manifest.content_scripts[0].matches,['http://*/*','https://*/*']);
   const options=await browser.newPage();await options.goto(`chrome-extension://${id}/options.html`);
   options.on('pageerror',e=>errors.push(e.message));

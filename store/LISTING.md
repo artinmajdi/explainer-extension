@@ -47,6 +47,7 @@ Privacy: https://github.com/artinmajdi/explainer-extension/blob/main/PRIVACY.md
 Explain text that a user selects on a webpage in simpler language, with related examples, definitions, diagrams, and optional explanatory pictures.
 
 ## Permission justifications
+- activeTab: Provides temporary current-tab access after an explicit toolbar or keyboard-shortcut invocation. This is redundant when the existing broad website access is granted; adding it does not replace that access or remove the broad-host review warning.
 - storage: Save user preferences, site exclusions, and optional user-provided cloud API credentials. Credential storage is limited to trusted extension contexts.
 - offscreen: Host and script a same-origin iframe that uses Chrome's window-only built-in Prompt API or WebLLM WebGPU runtime for local explanations; the background worker routes requests.
 - generativelanguage.googleapis.com: Call the Gemini API only when the user explicitly selects cloud mode, supplies a key, and consents.
